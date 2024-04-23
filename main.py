@@ -24,6 +24,7 @@
 @Date       : 3/31/24 10:07 AM
 """
 import dataclasses
+import math
 
 import svgwrite
 
@@ -128,6 +129,54 @@ def gen(_map: Map, size=(2048, 2048), padding=15):
     return draw
 
 
+@dataclasses.dataclass
+class Point:
+    x: float
+    y: float
+
+    def __add__(self, other):
+        assert isinstance(other, Point)
+        return StraightLine(a=self.y - other.y, b=other.x - self.x, c=self.x * other.y - other.x * self.y)
+
+    def __sub__(self, other):
+        assert isinstance(other, Point)
+        return Vector(x=self.x - other.x, y=self.y - other.y)
+
+
+@dataclasses.dataclass
+class Vector:
+    x: float
+    y: float
+
+    def angle(self, other):
+        assert isinstance(other, Vector)
+        print(self * other)
+        print(math.sqrt(self.x ** 2 + self.y ** 2) * math.sqrt(other.x ** 2 + other.y ** 2))
+        print(math.acos(1/2))
+        return math.acos(self * other / (math.sqrt(self.x ** 2 + self.y ** 2) * math.sqrt(other.x ** 2 + other.y ** 2)))
+
+    def __add__(self, other):
+        assert isinstance(other, Vector)
+        return Point(x=self.x + other.x, y=self.y + other.y)
+
+    def __sub__(self, other):
+        assert isinstance(other, Vector)
+        return Vector(x=self.x - other.x, y=self.y - other.y)
+
+    def __mul__(self, other):
+        if isinstance(other, Vector):
+            return self.x * other.x + self.y * other.y
+        else:
+            return Vector(x=self.x * other, y=self.y * other)
+
+
+@dataclasses.dataclass
+class StraightLine:
+    a: float
+    b: float
+    c: float
+
+
 if __name__ == '__main__':
     l3x, l3y = 1400, 100
     st_airport_north = Station('Airport North', (l3x, l3y), airport='CAN')
@@ -158,14 +207,14 @@ if __name__ == '__main__':
     st_panyu_square = Station('Panyu Square', (l3x + 700, l3y + 2400))
 
     l3 = Line('Line 3', color=(232, 158, 71), start_v=(0, 10))
-    l3.add_stations([
-        st_airport_north, st_airport_south, st_gaozeng, st_renhe, st_longgui, st_jiahewanggang, st_baiyundadaobei,
-        st_yongtai, st_tonghe, st_jingxi_nanfang_hospital, st_meihuayuan, st_yantang, st_guangzhou_east_railway_station,
-        st_linhexi, st_tiyuxilu, st_zhujiang_new_town, st_canton_tower, st_kecun, st_datang, st_lijiao, st_xiajiao,
-        st_dashi, st_hanxi_changlong, st_shiqiao, st_panyu_square
-    ])
+    l3.add_station(st_airport_north)
 
     map = Map('Guangzhou Metro')
     map.add_line(l3)
     svgwrite.Drawing()
     gen(map, (7520, 6600)).saveas('guangzhou_metro.svg')
+
+    p0=Point(0,0)
+    p1 = Point(1, 0)
+    p2 = Point(1, math.sqrt(3))
+    print((p1-p0).angle(p2-p0))
